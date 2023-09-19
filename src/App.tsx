@@ -1,5 +1,5 @@
 import { Circle } from '@phosphor-icons/react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 type Item = {
   title: string
@@ -30,27 +30,26 @@ function App() {
 
   const snapRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const sizeContainer = snapRef.current?.scrollWidth ?? 0
-      const sizeItem = (sizeContainer ?? 0) / items.length
-      const currentScroll = snapRef.current?.scrollLeft ?? 0
-      const lastItemScroll = (items.length - 1) * sizeItem
+  const handleItemChange = useCallback(() => {
+    const sizeContainer = snapRef.current?.scrollWidth ?? 0
+    const sizeItem = (sizeContainer ?? 0) / items.length
 
-      if (currentScroll >= lastItemScroll) {
-        snapRef.current?.scrollBy({ left: -sizeContainer, behavior: 'smooth' })
-        setCurrentItem(0)
-      } else {
-        snapRef.current?.scrollBy({ left: sizeItem, behavior: 'smooth' })
-        setCurrentItem((currentItem) => currentItem + 1)
-      }
-    }, 3000)
+    if (currentItem >= items.length - 1) {
+      snapRef.current?.scrollBy({ left: -sizeContainer, behavior: 'smooth' })
+      setCurrentItem(0)
+    } else {
+      snapRef.current?.scrollBy({ left: sizeItem, behavior: 'smooth' })
+      setCurrentItem((currentItem) => currentItem + 1)
+    }
+  }, [currentItem])
+
+  useEffect(() => {
+    const interval = setInterval(handleItemChange, 3000)
 
     return () => {
       clearInterval(interval)
-      setCurrentItem(0)
     }
-  }, [])
+  }, [currentItem])
 
   return (
     <main className='min-h-screen flex items-center justify-center bg-gray-200'>
